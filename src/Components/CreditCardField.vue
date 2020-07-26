@@ -29,18 +29,18 @@
                                 <div v-else key="icons" class="credit-card-icons">
                                     <animate-css mode="out-in" name="flip" y>
                                         <div v-if="focused !== 'cvc'" key="front" class="credit-card-field-icon-card">
-                                            <icon :icon="[icon ? 'fab' : 'far', icon || 'credit-card']" :data-brand="type && type.niceType || 'unknown'" class="credit-card-field-icon" width="20" height="18"/>
-                                        </div>                                
+                                            <icon :icon="[cardicon ? 'fab' : 'far', cardicon || 'credit-card']" :data-brand="type && type.niceType || 'unknown'" class="credit-card-field-icon" width="20" height="18"/>
+                                        </div>
                                         <div v-else key="back" class="credit-card-field-icon-card">
                                             <icon :icon="['fas', 'credit-card']" class="credit-card-field-icon" width="23.33" height="20"/>
-                                        </div>                                
+                                        </div>
                                     </animate-css>
-                                </div>                          
+                                </div>
                             </animate-css>
                         </template>
                     </input-field>
                 </div>
-                
+
                 <animate-css name="fade">
                     <div v-if="showSecurityFields && showName" class="credit-card-field-row" :class="{'has-error': currentErrors.name}">
                         <input-field
@@ -223,7 +223,7 @@ export default {
         cvc: String,
 
         zip: String,
-        
+
         showName: {
             type: Boolean,
             default() {
@@ -326,7 +326,7 @@ export default {
 
         invalidFeedback() {
             return this.error || Object.entries(this.currentErrors)
-                .filter(([key, value]) => !!value && value.toString)
+                .filter(([key, value]) => !!value && (typeof value === 'string'))
                 .map(([key, value]) => value.toString())
                 .join('<br>');
         },
@@ -361,7 +361,7 @@ export default {
             const years = [], year = new Date().getFullYear();
 
             for(let i = year; i < year + 15; i++) {
-                years.push(i);    
+                years.push(i);
             }
 
             return years;
@@ -419,10 +419,10 @@ export default {
 
         onValid(current, next) {
             if(this.$refs[current] && this.$refs[current].$el.querySelector(':focus')) {
-                if(this.$refs[next]) {
+                if(this.$refs[next] && this.$refs[next].$el.classList.contains('is-empty')) {
                     input(this.$refs[next].$el).focus();
                 }
-                else {
+                else if(!this.$refs[next]) {
                     input(this.$refs[current].$el).blur();
                 }
             }
@@ -437,7 +437,7 @@ export default {
                 input: {
                     el,
                     isValid,
-                    isPotentiallyValid 
+                    isPotentiallyValid
                 }
             });
         },
@@ -447,10 +447,10 @@ export default {
 
             this.type = type;
             this.code = type && type.code;
-            this.icon = type && `cc-${(ICONS[type.type] || type.type)}`;
+            this.cardicon = type && `cc-${(ICONS[type.type] || type.type)}`;
             this.$set(this.card, 'brand', type ? type.type : null);
             this.$set(this.card, 'numberFormatted', format(this.card.number, this.type));
-            
+
             this.$refs.number.$el.dispatchEvent(new Event('revalidate'));
         }
 
@@ -481,7 +481,7 @@ export default {
         return {
             card,
             validated,
-            icon: null,
+            cardicon: null,
             code: null,
             type: null,
             focused: null,
@@ -504,13 +504,13 @@ export default {
 .credit-card-field {
 
     & > .form-group {
+        margin-bottom: 0;
         border-radius: .25em;
         border: 1px solid $gray-300;
         box-shadow: 0 0 .5em $gray-100;
         background: lighten($gray-100, 2%);
     }
 
-    &.has-errors > .form-group,
     .credit-card-field-rows .form-group {
         margin-bottom: 0;
     }
@@ -519,12 +519,12 @@ export default {
         & > .form-group {
             border-color: $danger;
         }
-        
+
         .is-invalid.custom-input-field .custom-control,
         .is-invalid.custom-select {
             color: $danger;
             background-color: lighten($danger, 45%);
-        }      
+        }
     }
 
     .credit-card-field-rows {
@@ -552,7 +552,7 @@ export default {
             & > :first-child .custom-control {
                 border-bottom-left-radius : .25em;
             }
-            
+
             &:not(:first-child) > :not(:last-child) {
                 .custom-select,
                 .custom-control {
@@ -567,7 +567,7 @@ export default {
 
         &.has-error {
             &:not(:last-child) {
-                
+
             }
 
             .credit-card-field-icon {
@@ -621,7 +621,7 @@ export default {
     }
 
     .custom-select-field > label {
-        z-index: 2;
+        z-index: 1;
     }
 
     .credit-card-icons {
